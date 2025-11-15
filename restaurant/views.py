@@ -1,17 +1,15 @@
 from rest_framework import viewsets
-from .models import MenuItem, Table, Order, OrderItem, Reservation, InventoryItem
+from .models import MenuItem, Table, Reservation, InventoryItem, Order
 from .serializers import (
-    MenuItemSerializer,
-    TableSerializer,
-    OrderSerializer,
-    OrderItemSerializer,
-    ReservationSerializer,
-    InventoryItemSerializer,
+    MenuItemSerializer, TableSerializer, ReservationSerializer,
+    InventoryItemSerializer, OrderSerializer
 )
+from .permissions import IsAdmin,IsCustomer
 
-class MenuItemViewSet(viewsets.ModelViewSet):
+class MenuViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
+    permission_classes = []  # public
 
 
 class TableViewSet(viewsets.ModelViewSet):
@@ -19,21 +17,20 @@ class TableViewSet(viewsets.ModelViewSet):
     serializer_class = TableSerializer
 
 
-class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-
-
-class OrderItemViewSet(viewsets.ModelViewSet):
-    queryset = OrderItem.objects.all()
-    serializer_class = OrderItemSerializer
-
-
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
 
-
 class InventoryItemViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdmin]
     queryset = InventoryItem.objects.all()
     serializer_class = InventoryItemSerializer
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsCustomer]
+    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+

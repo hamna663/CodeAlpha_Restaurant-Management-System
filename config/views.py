@@ -1,24 +1,30 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import action
+from restaurant.permissions import IsAdmin
 from rest_framework.response import Response
 from django.db.models import Sum
 from datetime import date
-from restaurant.models import Order, InventoryItem
-from restaurant.serializers import InventoryItemSerializer
+from restaurant.models import InventoryItem, Order
+from rest_framework.viewsets import ViewSet
 
-@api_view(['GET'])
-def daily_sales_report(request):
-    today = date.today()
-    orders = Order.objects.filter(created_at__date=today,status='COMPLETED')
-    total_sales = orders.aggregate(total=Sum('total_price'))['total'] or 0.00
-    report = {
-        "date": today,
-        "total_orders": orders.count(),
-        "total_sales": total_sales,
-    }
-    return Response(report)
+class ReportsView(ViewSet):
+    permission_classes = [IsAdmin]
+    
+    @action(methods=["GET"], detail=False)
+    def daily_sales_report(request):
+        today = date.today()
+        sales = Order.objects.filter(created_at__date=today, status="completed")
+        total_sales = sales.aggregate(total=Sum("total"))["total"] or 0
+        return Response(
+            {
+                "date": today,
+                "total_sales": total_sales,
+                "orders_completed": sales.count(),
+            }
+        )
 
-@api_view(['GET'])
-def inventory_status(request):
-    items = InventoryItem.objects.all()
-    serializer = InventoryItemSerializer(items, many=True)
-    return Response(serializer.data)
+    @action(methods=["GET"], detail=False)
+    def low_stock_alerts(request):
+        low_items = [
+            item.name for item in InventoryItem.objects.all() if item.is_low_stock()
+        ]
+        return Response({"low_stock_items": low_items, "count": len(low_items)})

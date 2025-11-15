@@ -1,19 +1,13 @@
 from rest_framework.routers import DefaultRouter
 from .views import (
-    MenuItemViewSet,
-    TableViewSet,
-    OrderViewSet,
-    OrderItemViewSet,
-    ReservationViewSet,
-    InventoryItemViewSet
+    MenuViewSet, TableViewSet, ReservationViewSet, InventoryItemViewSet, OrderViewSet
 )
 
 router = DefaultRouter()
-router.register(r'menu-items', MenuItemViewSet)
-router.register(r'tables', TableViewSet)
-router.register(r'orders', OrderViewSet)
-router.register(r'order-items', OrderItemViewSet)
-router.register(r'reservations', ReservationViewSet)
-router.register(r'inventory-items', InventoryItemViewSet)
+router.register('menu', MenuViewSet,basename="menu")
+router.register('tables', TableViewSet,basename="tables")
+router.register('reservations', ReservationViewSet,basename="reservations")
+router.register('inventory', InventoryItemViewSet,basename="inventory")
+router.register('orders', OrderViewSet,basename="orders")
 
 urlpatterns = router.urls
